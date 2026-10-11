@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MetaCare | Hospital System{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
+</head>
+<body>
+<nav>
+  <span class="logo"><i></i><span>MetaCare</span></span>
+  <a href="{{ url_for('index') }}">Dashboard</a>
+  <a href="{{ url_for('patients') }}">Patients</a>
+  <a href="{{ url_for('doctors') }}">Doctors</a>
+  <a href="{{ url_for('appointments') }}">Appointments</a>
+  <a href="{{ url_for('records') }}">Records</a>
+  <span class="sp"></span>
+  <button id="theme" title="Toggle theme" aria-label="Toggle theme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+</nav>
+<main>
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<!-- AI assistant -->
+<button class="orb" id="orb" aria-label="Open AI assistant"></button>
+<section class="panel" id="panel" aria-label="AI assistant">
+  <div class="ph"><div><b>MetaCare Assistant</b><small>Ask about patients, doctors &amp; appointments</small></div><button id="close">×</button></div>
+  <div class="msgs" id="msgs"></div>
+  <div class="chips" id="chips"></div>
+  <form class="ask" id="ask"><input id="q" placeholder="Ask something…" autocomplete="off"><button>Send</button></form>
+</section>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

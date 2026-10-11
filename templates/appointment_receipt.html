@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Appointment Receipt | MetaCare{% endblock %}
+{% block content %}
+<div class="receipt-page">
+  <div class="receipt-actions">
+    <a class="btn sec" href="{{ url_for('appointments') }}">Back to appointments</a>
+    <div>
+      <button class="btn sec" type="button" id="print-receipt">Print receipt</button>
+      <button class="btn" type="button" id="download-receipt">Download PDF</button>
+    </div>
+  </div>
+
+  <article class="receipt" id="appointment-receipt">
+    <header class="receipt-header">
+      <div class="receipt-brand">
+        <span class="receipt-mark" aria-hidden="true">+</span>
+        <div><strong>MetaCare</strong><small>Hospital Management System</small></div>
+      </div>
+      <div class="receipt-reference">
+        <span>APPOINTMENT RECEIPT</span>
+        <strong data-field="id">#{{ appointment.appointment_id }}</strong>
+      </div>
+    </header>
+
+    <div class="receipt-heading">
+      <div>
+        <p class="receipt-eyebrow">Appointment confirmation</p>
+        <h1>Appointment receipt</h1>
+        <p class="receipt-intro">Keep this receipt for your records and bring it to your visit.</p>
+      </div>
+      <span class="receipt-status status-{{ appointment.status|lower }}" data-field="status">{{ appointment.status }}</span>
+    </div>
+
+    <div class="receipt-parties">
+      <section class="receipt-party">
+        <p class="receipt-label">PATIENT</p>
+        <h2 data-field="patient">{{ appointment.patient }}</h2>
+        <p data-field="phone">{{ appointment.patient_phone }}</p>
+        {% if appointment.patient_email %}<p data-field="email">{{ appointment.patient_email }}</p>{% endif %}
+      </section>
+      <section class="receipt-party">
+        <p class="receipt-label">CARE PROVIDER</p>
+        <h2 data-field="doctor">{{ appointment.doctor }}</h2>
+        <p data-field="specialization">{{ appointment.specialization }}</p>
+      </section>
+    </div>
+
+    <section class="receipt-visit">
+      <p class="receipt-label">VISIT DETAILS</p>
+      <div class="receipt-visit-grid">
+        <div><span>Date</span><strong data-field="date">{{ appointment.appointment_date_display }}</strong></div>
+        <div><span>Time</span><strong data-field="time">{{ appointment.appointment_time_display }}</strong></div>
+        <div><span>Appointment ID</span><strong>#{{ appointment.appointment_id }}</strong></div>
+      </div>
+    </section>
+
+    <section class="receipt-reason">
+      <p class="receipt-label">REASON FOR VISIT</p>
+      <p data-field="reason">{{ appointment.reason or "Not specified" }}</p>
+    </section>
+
+    <footer class="receipt-footer">
+      <strong>Thank you for choosing MetaCare.</strong>
+      <span>Please arrive 10 minutes before your scheduled appointment.</span>
+    </footer>
+  </article>
+</div>
+{% endblock %}

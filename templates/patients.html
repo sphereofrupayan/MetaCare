@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Patients</h1>
+<div class="bar">
+  <form method="get"><input name="q" value="{{ q }}" placeholder="Search name, phone, email"><button class="btn">Search</button></form>
+  <a class="btn" href="{{ url_for('add_patient') }}">+ Add patient</a>
+</div>
+<div class="card">
+{% if rows %}
+<table>
+  <tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th><th>Address</th><th></th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.patient_id }}</td><td>{{ r.name }}</td><td>{{ r.age }}</td><td>{{ r.gender }}</td>
+    <td>{{ r.phone }}</td><td>{{ r.email or '-' }}</td><td>{{ r.address or '-' }}</td>
+    <td>
+      <a class="btn sm sec" href="{{ url_for('edit_patient', pid=r.patient_id) }}">Edit</a>
+      <form class="inline" method="post" action="{{ url_for('delete_patient', pid=r.patient_id) }}" data-confirm="Delete this patient and all their appointments/records?">
+        <button class="btn sm danger">Delete</button></form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No patients found.</p>{% endif %}
+</div>
+{% endblock %}

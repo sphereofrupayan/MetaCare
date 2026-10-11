@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Patient Records</h1>
+<div class="card">
+  <h3 style="margin-top:0">Add record</h3>
+  {% if patients and doctors %}
+  <form method="post">
+    <div class="grid">
+      <div><label>Patient *</label>
+        <select name="patient_id" required>{% for p in patients %}<option value="{{ p.patient_id }}">{{ p.name }} (#{{ p.patient_id }})</option>{% endfor %}</select></div>
+      <div><label>Doctor *</label>
+        <select name="doctor_id" required>{% for d in doctors %}<option value="{{ d.doctor_id }}">{{ d.name }}</option>{% endfor %}</select></div>
+      <div><label>Date *</label><input type="date" name="record_date" required></div>
+      <div><label>Diagnosis *</label><input name="diagnosis" required></div>
+      <div><label>Prescription</label><input name="prescription"></div>
+    </div>
+    <p><button class="btn">Save record</button></p>
+  </form>
+  {% else %}<p class="empty">Add at least one patient and one doctor first.</p>{% endif %}
+</div>
+<div class="card">
+  <form method="get" class="bar" style="justify-content:flex-start">
+    <select name="patient_id" style="width:250px" onchange="this.form.submit()">
+      <option value="">All patients</option>
+      {% for p in patients %}<option value="{{ p.patient_id }}" {% if sel|string == p.patient_id|string %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+  </form>
+  {% if rows %}
+  <table>
+    <tr><th>Date</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Prescription</th><th></th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.record_date }}</td><td>{{ r.patient }}</td><td>{{ r.doctor }}</td><td>{{ r.diagnosis }}</td><td>{{ r.prescription or '-' }}</td>
+      <td><form class="inline" method="post" action="{{ url_for('delete_record', rid=r.record_id) }}" data-confirm="Delete this record?">
+        <button class="btn sm danger">Delete</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="empty">No records found.</p>{% endif %}
+</div>
+{% endblock %}

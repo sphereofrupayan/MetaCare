@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Appointments</h1>
+<div class="card">
+  <h3 style="margin-top:0">Book an appointment</h3>
+  {% if patients and doctors %}
+  <form method="post">
+    <div class="grid">
+      <div><label>Patient *</label>
+        <select name="patient_id" required>{% for p in patients %}<option value="{{ p.patient_id }}">{{ p.name }} (#{{ p.patient_id }})</option>{% endfor %}</select></div>
+      <div><label>Doctor *</label>
+        <select name="doctor_id" required>{% for d in doctors %}<option value="{{ d.doctor_id }}">{{ d.name }} - {{ d.specialization }}</option>{% endfor %}</select></div>
+      <div><label>Date *</label><input type="date" name="appointment_date" required></div>
+      <div><label>Time *</label><input type="time" name="appointment_time" required></div>
+      <div><label>Reason</label><input name="reason"></div>
+    </div>
+    <p><button class="btn">Book</button></p>
+  </form>
+  {% else %}<p class="empty">Add at least one patient and one doctor first.</p>{% endif %}
+</div>
+<div class="card">
+{% if rows %}
+<table>
+  <tr><th>ID</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+  {% for a in rows %}
+  <tr>
+    <td>{{ a.appointment_id }}</td><td>{{ a.appointment_date }}</td><td>{{ a.appointment_time }}</td>
+    <td>{{ a.patient }}</td><td>{{ a.doctor }}<br><small>{{ a.specialization }}</small></td><td>{{ a.reason or '-' }}</td>
+    <td>
+      <form method="post" action="{{ url_for('update_status', aid=a.appointment_id) }}">
+        <select name="status" onchange="this.form.submit()">
+          {% for s in statuses %}<option {% if s == a.status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </form>
+    </td>
+    <td>
+      <a class="btn sm sec" href="{{ url_for('appointment_receipt', aid=a.appointment_id) }}">Receipt</a>
+      <form class="inline" method="post" action="{{ url_for('delete_appointment', aid=a.appointment_id) }}" data-confirm="Delete this appointment?">
+        <button class="btn sm danger">Delete</button></form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No appointments yet.</p>{% endif %}
+</div>
+{% endblock %}

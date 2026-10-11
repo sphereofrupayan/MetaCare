@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="card">
+  <form method="post">
+    <div class="grid">
+    {% for f in fields %}
+      <div>
+        <label>{{ f.label }}{% if f.required %} *{% endif %}</label>
+        {% if f.type == 'select' %}
+          <select name="{{ f.name }}" {% if f.required %}required{% endif %}>
+            {% for o in f.options %}<option {% if values.get(f.name) == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+          </select>
+        {% elif f.type == 'textarea' %}
+          <textarea name="{{ f.name }}" rows="2">{{ values.get(f.name) or '' }}</textarea>
+        {% else %}
+          <input type="{{ f.type }}" name="{{ f.name }}" value="{{ values.get(f.name) or '' }}" {% if f.required %}required{% endif %}>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+    <p><button class="btn">Save</button> <a class="btn sec" href="{{ url_for(back) }}">Cancel</a></p>
+  </form>
+</div>
+{% endblock %}

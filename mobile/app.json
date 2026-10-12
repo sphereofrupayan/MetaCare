@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Hospital Management Mobile",
+    "slug": "hospital-management-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
+    "splash": {
+      "backgroundColor": "#f4f7fb"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.hospitalmanagement.mobile",
+      "usesCleartextTraffic": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.hospitalmanagement.mobile"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-sharing"
+    ]
+  }
+}

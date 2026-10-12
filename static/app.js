@@ -175,6 +175,7 @@ function exportCSV(t) {
 function exportPDF(t) {
   if (!window.jspdf) return toast('PDF library not loaded - check your internet connection');
   const doc = new window.jspdf.jsPDF({ orientation: 'landscape' }), { head, body } = tableData(t);
+  if (typeof doc.autoTable !== 'function') return toast('PDF table plugin not loaded - check your internet connection');
   doc.setFontSize(17); doc.setTextColor(15, 118, 110); doc.text('MetaCare - ' + title(), 14, 16);
   doc.setFontSize(9); doc.setTextColor(110); doc.text('Generated ' + new Date().toLocaleString(), 14, 22);
   doc.autoTable({ head: [head], body, startY: 27, styles: { fontSize: 9 }, headStyles: { fillColor: [15, 118, 110] }, alternateRowStyles: { fillColor: [244, 247, 250] } });
@@ -192,23 +193,42 @@ $$('.card').forEach(card => {
   bar.addEventListener('click', e => { const a = e.target.dataset.a; if (a === 'csv') exportCSV(t); if (a === 'pdf') exportPDF(t); });
 });
 
-/* ---------- AI assistant (runs in the browser, reads your pages - no backend changes) ---------- */
+/* ---------- AI assistant ---------- */
 const orb = $('#orb'), panel = $('#panel'), msgs = $('#msgs');
-const pages = { patients: '/patients', doctors: '/doctors', appointments: '/appointments', records: '/records' };
 let cache = null, cacheAt = 0;
+
+async function getJSON(path) {
+  const response = await fetch(path, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error(`Could not load hospital data (HTTP ${response.status}).`);
+  if (!response.headers.get('content-type')?.includes('application/json'))
+    throw new Error('The server returned an unexpected response while loading hospital data.');
+  return response.json();
+}
 
 async function loadData() {
   if (cache && Date.now() - cacheAt < 30000) return cache;
-  const out = {};
-  await Promise.all(Object.entries(pages).map(async ([k, u]) => {
-    out[k] = [];
-    try {
-      const doc = new DOMParser().parseFromString(await (await fetch(u)).text(), 'text/html');
-      const t = $('table', doc); if (!t) return;
-      const rows = $$('tr', t), head = $$('th', rows[0]).map(h => h.textContent.trim().toLowerCase());
-      out[k] = rows.slice(1).map(r => { const o = {}, c = $$('td', r); head.forEach((h, i) => { if (h) o[h] = cellText(c[i]); }); return o; });
-    } catch (e) { /* page unavailable */ }
-  }));
+  const [patients, doctors, appointments, records] = await Promise.all([
+    getJSON('/api/patients'),
+    getJSON('/api/doctors'),
+    getJSON('/api/appointments'),
+    getJSON('/api/records'),
+  ]);
+  if (!Array.isArray(patients.patients) || !Array.isArray(doctors.doctors)
+      || !Array.isArray(appointments.appointments) || !Array.isArray(records.records))
+    throw new Error('The server returned incomplete hospital data.');
+  const out = {
+    patients: patients.patients,
+    doctors: doctors.doctors,
+    appointments: appointments.appointments.map(a => ({
+      ...a,
+      date: a.appointment_date,
+      time: a.appointment_time,
+    })),
+    records: records.records.map(r => ({
+      ...r,
+      'record date': r.record_date,
+    })),
+  };
   cache = out; cacheAt = Date.now(); return out;
 }
 
@@ -269,7 +289,8 @@ async function answer(q) {
 async function ask(q) {
   q = q.trim(); if (!q) return;
   say(esc(q), true); orb.classList.add('thinking');
-  try { say(await answer(q)); } catch (e) { say('Sorry, something went wrong reading the data.'); }
+  try { say(await answer(q)); }
+  catch (e) { say(esc(e instanceof Error ? e.message : 'Could not read hospital data.')); }
   orb.classList.remove('thinking');
 }
 const chips = ['Summary', "Today's appointments", 'Upcoming appointments', 'Doctors', 'How to book'];
@@ -297,8 +318,20 @@ if ($('#dash')) (async () => {
     const t = setInterval(() => { i = Math.min(end, i + step); b.textContent = i; if (i >= end) clearInterval(t); }, 30);
   });
 
-  const { patients: P, doctors: D, appointments: A } = await loadData();
-  const today = new Date().toLocaleDateString('en-CA');
+  let data;
+  try {
+    data = await loadData();
+  } catch (e) {
+    const message = esc(e instanceof Error ? e.message : 'Could not load dashboard data.');
+    $('#timeline').innerHTML = `<p class="hint">${message}</p>`;
+    $('#specbars').innerHTML = `<p class="hint">${message}</p>`;
+    $('#genderbars').innerHTML = `<p class="hint">${message}</p>`;
+    $('#busy').innerHTML = `<p class="hint">${message}</p>`;
+    return;
+  }
+  const { patients: P, doctors: D, appointments: A } = data;
+  const now = new Date();
+  const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
 
   // donut by status
   const cols = { Scheduled: '#3b82f6', Completed: '#16a34a', Cancelled: '#dc2626' };
